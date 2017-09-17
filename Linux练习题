@@ -1,0 +1,1722 @@
+Linux练习题1
+1. 使用putty 远程连接时，默认情况是使用的22端口， 如何自定义链接的端口号
+ vi /etc/ssh/sshd_config
+ #Port 22 将#去掉， 22更改为自定义的端口号
+ 
+2.如何修改网卡的ip 地址
+ 临时修改： ifconfig eth0 192.168.0.130  netmask 255.255.255.0
+ 永久生效： vi /etc/sysconfig/network-scripts/ifcfg-eth0
+       ONBOOT = yes
+       IPADDR = 192.168.0.130
+       NETMASK = 255.255.255.0
+       GATEWAY = 192.168.0.2
+       
+3.查看，启动，关闭服务（例如sshd ,iptables）的命令是什么；
+ service --status-all
+ /etc/init.d/sshd start
+ /etc/init.d/iptables start
+ /etc/init.d/sshd stop
+ /etc/init.d/iptables stop
+ 
+4.在根目录下级创建/aa/bb/cc 三个目录
+ mkdir -p /aa/bb/cc 
+ 
+5.使用rm删除文件或目录时，可以携带-r -f 参数，这些参数什么意思？
+ rm -r : 删除目录
+ rm -f : 强制删除
+ 
+6.如何查看命令的环境变量以及配置环境变量？
+ echo $PATH
+ PATH = $PATH:/路径
+ vi /etc/profile export PATH = "路径:$PATH"
+ 
+7.在家目录下，创建一个test 文件，向里面写上任意一段文字，然后，修改其所属权限为6 ，所属主权限为7，而其他修改权限为2.
+ touch /home/test
+ echo "hello world" > /home/test 
+ chmod 762 /home/test
+ 
+8.创建一个文件，只能向该文件中添加数据，同时，非root 用户不能删除该权限
+ touch document
+ chattr +a document
+ 
+9.理解atime ctime mtime 三个时间的意思？
+ atime: access 访问时间
+ ctime: change 更改时间
+ mtime: modify 修改时间
+ 
+10.查找10天内在当前用户的家目录下访问的文件。
+ find /home/ -atim e -10
+ 
+11.使用find 通过文件类型查找文件。例如：在temp目录下查找文件类型为d 的文件
+ find /home/ -type d
+ 
+12.软硬连接的格式以及区别；
+ 软连接： ln -s 
+ 硬链接:  ln
+ 创建连接：硬链接不产生新的inode , 软连接生成新inode 
+ 删除源文件：硬链接无影响，软连接同时删除
+ 修改源文件：硬链接无影响，软连接同时删除。
+ 创建目录 ： 硬链接无法指向目录， 软连接可以指向目录
+ 分区创建 ： 硬链接无法跨分区设备连接，软连接可以跨分区设备连接。
+ 相对windows：硬链接相当于副本，软连接相当于快捷方式。
+ 
+13.创建三个用户user1,user2,user3
+ useradd user1
+ useradd user2
+ useradd user3
+ 
+14.创建一个用户组group1,并且将上题中的用户添加到该用户组
+ groupadd group1
+ usermod -G group1 user1
+ usermod -G group1 user2
+ usermod -G group1 user3
+  
+15.创建一个目录，在该目录下创建test1.txt, test2.txt,test3.txt 三个文件， 然后将其所属组修改为group1
+ mkdir dir
+ touch text1.txt
+ touch text2.txt
+ touch text3.txt
+ chgrp group1 text1.txt
+ chgrp group1 text2.txt
+ chgrp group1 text3.txt
+ 
+16.删除用户user1和用户组group1 
+ userdel user1
+ groupdel group1
+ 
+17.安装那个包后才能使用mkpasswd 命令，使用该命令的作用是什么。
+ yum install -y except
+ mkpasswd 生成密码的工具
+ 
+18.使用su和sudo之间的区别和联系
+ su 切换用户身份
+ sudo 默认只有root用户才能使用的命令，普通用户想要使用sudo ,是需要root预先设定的
+ 
+19.禁止root远程登录
+ vi /etc/ssh/sshd_config 
+ PermitRootLogin no
+ 
+20.挂载一个磁盘，创建一个2G大的主分区挂载到、root/jzc下
+ fdisk /dev/sdb
+ m
+ n
+ p
+ 1
+ +2G
+ p
+ w
+ fdisk -l /dev/sdb
+ mke2fs -t ext4 /dev/sdb5
+ mount /dev/sdb5/root/jzc
+ 
+ 
+练习题-2
+1、网卡 eth0 的配置文件的路径是什么 ？
+ /etc/sysconfig/network-scripts/ifcfg-eth*
+2、配置静态IP时的几个关键参数是什么 ？
+  DEVICE=eth0
+   ONBOOT=yes
+   BOOTPROTO=static
+   IPADDR=192.168.1.88
+   NETMASK=255.255.255.0
+   GATEWAY=192.168.1.1
+   DNS1=192.168.1.1
+   DNS2=202.106.46.151
+3、如何查看网卡 eth0 的连接状态 ？
+ mii-tool eth0 ( 必须超级用户才可以执行 VMware 不支持此命令 )  、ethtool eth0 
+4、忘记 root 密码时，需要通过哪个运行级别来重置 root 密码 ？
+   系统无法启动时，需要通过什么方式进入系统 ？
+ 级别 1 （单用户模式）
+   急救模式 （用光盘引导进入）
+5、简述 Linux 启动流程
+  开机 --> BIOS 自检 
+   --> 找到引导设备上的 MBR --> 通过 MBR 中的 GRUB 配置执行相应的内核映像代码（函数会加载硬件驱动等）
+   --> init 进程根据运行级别初始化系统（启动对应级别的守护进程、建立终端）
+   --> 由 login 进程验证用户登陆
+6、如何回到上次工作目录 ？
+  cd -
+7、如何得到命令 passwd 的存放位置 ？
+  which passwd
+8、从下面你可以得到什么信息 ？ 这样的显示方式是如何得到的 ？
+   391682 -rw-r--r--. 1 root root 13K 11月 12 17:51 install.log 
+  通过 ls -lih install.log 或 ll -ih install.log 可以得到
+   391682 代表 inode (索引节点)
+   -      代表 普通文件
+   rw-    代表 文件的属主用户对此文件权限为 可读可写
+   r--    代表 文件的属组用户对此文件权限为 可读
+   r--    代表 其他用户对此文件的权限为 可读
+   .      代表 SELinux 属性 （如果 . 的位置是 + 代表此文件设置了 ACL 权限）
+   1      代表 此文件的硬链接数
+   root   代表 属主为 root
+   root   代表 属组为 root
+   13K    代表 文件大小
+   11月 12 17:51 代表 文件的 mtime
+   install.log   代表 文件名
+9、创建组 VBOSS ，指定 GID=200
+  groupadd -g 200 VBOSS
+10、创建用户 BOSS ，指定 UID=100 GID=200 ，之后将登陆 shell 改为 /sbin/nologin
+  useradd -u 100 -g 200 BOSS
+    usermod -s /sbin/nologin BOSS
+11、如何生成一个：
+    长度为 20 个字符、最少 5 个数字、最少 5 个特殊字符、最少 5 个小写字母、最少 5 个大写字母的密码
+  mkpasswd -l 20 -d 5 -s 5 -c 5 -C 5
+12、如何设置普通用户 jzc 可以执行系统所有命令（ sudo 的方式 ）？
+    如何设置普通用户 jzc 可以执行除 ls 命令外的所有命令 ？
+  visudo
+    jzc   ALL=(ALL)       ALL
+    jzc   ALL=(ALL)       ALL,!/bin/ls  # 可以执行 ALL 命令，但是不能执行 /bin/ls
+13、fdisk /dev/sdb 中 ，指令 n d  w q t p 分别代表什么意思 ？
+  n 创建一个分区
+    d 删除一个分区
+    w 保存并退出 
+    q 不保存退出
+    t 更改分区 ID
+    p 打印分区表
+14、分区 ID ：82 83 8e 代表什么 ？
+  82 代表 swap 分区
+    83 代表 Linux 普通分区
+    8e 代表 LVM 分区
+15、使用 tar 将当前目录下的 install.log 文件压缩成 install.log.tar.gz
+  tar zcf install.log.tar.gz install.log
+16、将 install.log.tar.gz 解压到 /tmp
+    tar jxf install.log.tar.gz -C /tmp/
+17、使用 mv $() /tmp 的方式将当前目录下小于 4k 的文件移动到 /tmp
+  mv $(find . -type f -size 4k) /var/tmp/
+18、文件名为 install.log ，如何批量创建 install.log.a.tar.gz -- install.log.g.tar.gz 的压缩文件 ？
+  for i in {a..g};do tar zcf install.$i.tar.gz install.log ; done
+19、如何批量解压 .tar.gz 的文件到 /tmp ?
+  ls *.tar.gz | xargs -i tar zxf {} -C /tmp/
+20、编写脚本 useradd.sh ，实现：
+    ./useradd.sh 1   ## 可以创建一个 myuser1 用户，并将密码设为 myuser1 类推..
+    ./useradd.sh 2   ## 可以提示 myuser1 用户存在 ，myuser2 创建成功
+    ./useradd.sh { 这个数值可以是系统承受最大限度，也就是说可以是用户输入的任意数量，直至系统无法创建 }
+       如下：                                                     
+          #!/bin/bash                                                                                      
+          # Create user script.                                                                            
+          # Writen by Wangxiaoqiang 2014-12-02.                      
+                                                           
+          if [ $# -ne 1 ]                                            
+            then                                                     
+                echo "Usage: $0 number{1..*}."                       
+                exit 1                                               
+          fi                                                         
+                                                           
+          for i in `seq 1 $1`                                        
+            do                                                       
+              User=myuser$i                                          
+              grep ${User} /etc/passwd > /dev/null                   
+              if [ $? -eq 0 ]                                        
+                then                                                 
+                    echo "User ${User} already exists ."             
+                else                                                 
+                    useradd ${User}                                  
+                    echo ${User} | passwd --stdin ${User} > /dev/null
+                    echo "Create user ${User} Success ."             
+              fi                                                     
+          done         
+          
+          
+21、命令行方式删除上面创建的任意数量的用户。          
+  for i in `awk -F : '$1~/myuser/ {print $1}' /etc/passwd` ; do userdel -r $i ; done   
+ 
+练习题-3
+1在/home/下创建目录jzc，切换到jzc目录下并查看jzc目录下的隐藏文件
+        [root@junru ~]# mkdir /home/jzc
+        [root@junru ~]# cd /home/jzc/
+        [root@junru jzc]# ls -a
+        .  .. 
+2创建用户组group1，指定组GID为555
+        [root@junru jzc]# groupadd -g 555 group1
+3创建用户user1，user2，指定两个用户的组为group1
+        [root@junru jzc]# useradd -g group1 user1
+        [root@junru jzc]# useradd -g group1 user2
+4在jzc目录下创建文件1.txt 2.txt a/3.txt，列出文件1.txt 和目录a的文件权限和i节点
+        [root@junru jzc]# touch 1.txt
+        [root@junru jzc]# touch 2.txt
+        [root@junru jzc]# mkdir a
+        [root@junru jzc]# touch a/3.txt
+        [root@junru jzc]# ls -li 1.txt
+        531728 -rw-r--r-- 1 root root 0 11月 29 11:48 1.txt
+        [root@junru jzc]# ls -lid a
+        531730 drwxr-xr-x 2 root root 4096 11月 29 11:49 a
+5更改a目录和3.txt的拥有者为user1，user1的家目录更换为/home/user2
+        [root@junru jzc]# chown -R user1 a
+        [root@junru jzc]# usermod -d /home/user2 user1
+6开机运行级别2和3有什么区别，在哪个配置文件里可以更改运行级别？
+        2是没有NFS的3级别
+        [root@junru jzc]# vi /etc/inittab
+                id:3:initdefault:
+7如何生成一段md5密码？查看grub配置文件
+        [root@junru ~]# grub-md5-crypt
+        Password:
+        Retype password:
+        $1$.sZR/$EeAMqXoO0rR25RhQR4tR/1
+        [root@junru ~]# vi /etc/grub.conf
+                在title上面一行添加password --md5 $1$.sZR/$EeAMqXoO0rR25RhQR4tR/1
+8如何查看当前有几个用户在线？ TTY和pts分别代表什么？
+        [root@junru jzc]# who
+        TTY 控制终端
+        pts 虚拟终端
+9查看命令passwd、locate的位置并用ls -l查看命令文件属性
+        [root@junru jzc]# which passwd
+        /usr/bin/passwd
+        [root@junru jzc]# which locate
+        /usr/bin/locate
+        [root@junru jzc]# ls -l /usr/bin/passwd
+        -rwsr-xr-x. 1 root root 25980 2月  22 2012 /usr/bin/passwd
+        [root@junru jzc]# ls -l /usr/bin/locate
+        -rwx--s--x 1 root slocate 31492 10月 10 2012 /usr/bin/locate
+10系统中默认哪个文件设置了SUID，哪个文件设置了SGID，哪个目录设置了SBit
+        SUID  passwd
+        SGID  locate
+        SBit  /tmp
+ 
+练习题-4
+11如何更新locate的数据库
+        [root@junru jzc]# updatedb
+12用find命令查找我目录下所有普通文件，并重命名为*.bak
+        [root@junru jzc]# find /home/jzc/ -type f | xargs -i mv {} {}.bak
+13创建1.txt.bak软链接到/tmp下
+        [root@junru jzc]# touch 1.txt.bak
+        [root@junru jzc]# ln -s 1.txt.bak /tmp/
+14随机生成一个12位密码，要求有3个数字，3个特殊字符
+        [root@junru jzc]# mkpasswd -l 12 -d 3 -s 3
+        e)uA9]A81i>h
+15如何查看硬盘的UUID
+        [root@junru jzc]# blkid
+16查看硬盘使用状况
+        [root@junru jzc]# df -h
+17简述fstab每段的意义，并说明defualts包含哪些默认属性
+ [root@junru jzc]# cat /etc/fstab
+UUID=90c72031-3d61-48cb-97a9-1a490133a878 /                       ext4    defaults        1 1
+        第一列：分区的标识
+        第二列：挂载点
+        第三列：分区的格式
+        第四列：mount的一些挂载参数。一般默认直接写defaults即可
+        第五列：数字表示是否被dump备份。1表示备份，0表示不备份
+        第六列：数字表示开机时是否自检磁盘，1和2表示检测，0表示不检测
+18将系统镜像挂载到任意目录，配置fstab，使其永久生效
+        [root@junru home]# mount /dev/cdrom /home/test/
+        [root@junru home]# vi /etc/fstab
+        /dev/cdrom              /home/test              ext4    defaults        0 0
+ 20删除本次实验创建的group1 user1 user2 /home/jzc及下面的所有文件，/tmp下的软链接,为root重设密码
+        [root@junru jzc]# userdel user1
+        [root@junru jzc]# userdel user2
+        [root@junru jzc]# groupdel group1
+        [root@junru jzc]# rm -rf /home/jzc/
+        [root@junru tmp]# rm -r 1.txt.bak
+        rm：是否删除符号链接 "1.txt.bak"？y
+        [root@junru home]# passwd
+        更改用户 root 的密码 。
+        新的 密码：
+        重新输入新的 密码：
+        passwd： 所有的身份验证令牌已经成功更新。
+21编写硬盘监控脚本，当根目录所在硬盘的使用率大于85%时输出警告信息
+        #!/bin/bash
+        usage=`df / | awk '$5=="/"{sub("%","",$4);print $4}'`
+        if [ $usage -gt 85 ]; then
+                echo "warning" {} \;
+        fi
+简述linux启动过程：
+1) 内核启动init 
+2) 系统初始化：（/etc/init/rcS.conf exec /etc/rc.d/rc.sysinit） 
+3) init找到/etc/inittab文件，确定默认的运行级别(X) （/etc/init/rcS.conf exec telinit $runlevel） 
+4) 触发相应的runlevel事件(/etc/init/rc.conf exec /etc/rc.d/rc $RUNLEVEL) 
+5) 开始运行/etc/rc.d/rc,传入参数X 
+6) /etc/rc.d/rc脚本进行一系列设置，最后运行相应的/etc/rcX.d/中的脚本 
+7) /etc/rcX.d/中的脚本按事先设定的优先级依次启动 
+8) 最后执行/etc/rc.d/rc.local 
+9) 加载终端或X-Window接口 
+10) 用户登陆
+8. 请用一条命令实现：让其他主机无法ping通您的Linux.
+
+　(1)直接修改/proc/sys/net/ipv4/icmp_echo_ignore_all 文件（这个文件默认是只读的）
+　　该文件只有一个数值：
+　　将该值改“1”后为开启（运行）禁止PING
+　　将该值改“0”后为关闭（停止）禁止PING　
+
+(2)直接输入命令行设置（这个方法需要ROOT权限）
+　　echo 1 > /proc/sys/net/ipv4/icmp_echo_igore_all
+　　echo 0 > /proc/sys/net/ipv4/icmp_echo_igore_all
+（3）使用iptables限制
+　　iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -j DROP  利用iptables丢弃掉来自外网请求的ICMP包，达到禁Ping的效果
+iptables -D INPUT -p icmp --icmp-type 8 -s 0/0 -j DROP  解除　
+10. 忘记root密码怎么做？
+　　进入单用户模式更改密码。
+　　　　忘记密码: 单用户重启， 按键进入title， e:编辑（grub config , 选中ro ，
+　　　　按e ， 1/s/single, 回车，按b to boot, passwd。），
+　　　　a:修改内核参数 ，c:命令行服务器启动不了，更改配置文件导致进不了系统： 
+光盘救援模式 ，重启F2， +/-将CD移动至第一行， F10 保存， rescue installed system
+ 
+练习5
+
+1. 自动获取IP地址的命令是什么？您知道在什么情况下，您的Linux才可以自动获取IP地址？
+　　　　dhclient ，  bootproto=dhcp 
+2. 远程连接Linux服务器，需要Linux服务器开启sshd服务，那么sshd服务默认监听哪个端口？这个端口是否可以自定义呢？如果可以，如何自定义？
+　　　　/etc/ssh/sshd_config， Port 22，把22修改成自己喜欢端口即可/etc/ssh/sshd_config，找到Port 22，把22修改成自己喜欢端口即可
+3. 列举出常用的远程连接linux的终端工具有哪些？
+　　　　SecureCRT /Xshell /Putty
+4. 手动配置IP，需要修改哪个配置文件？ 更改默认的配置文件，需要更改哪些地方，需要增加哪几行？
+　　　　/etc/sysconfig/network-scripts/ifcfg-eth0
+　　　　BOOTPROTO/ONBOOT/IPADDR/NETMASK/GATEWAY/PEERDNS/DNS1/DNS2
+5. 重启网络服务的命令是什么？
+　　　　service network restart ==/etc/init.d/network restart
+6. 配置DNS需要修改哪个配置文件？
+　　　　/etc/resolv.conf
+7. 请查资料了解密钥对的工作原理。
+　　　　公钥加密技术采用一对匹配的密钥进行加密、解密。每把密钥执行一种对数据的单向处理，每把的功能恰恰与另一把相反，一把用于加密时，则另一把就用于解密。
+8. 请使用putty的生成密钥对工具，生成公钥和私钥，并且设置私钥密码，把公钥复制到Linux上，实现用密钥登陆您的Linux.要注意两个关键点，就是设置 .ssh 目录权限以及关闭selinux.　　　　
+　　PuttyGen 密钥生成
+　　 Generate  - key passphrase -   save private key  -  save public key  -  
+　　 mkdir .ssh 
+　　 vi .ssh/autorized_keys 
+　　 chmod 600 !$   ==chmod 600 .ssh/autorized_keys 
+　　 chmod 700 .ssh/
+　　 setenforce 0   暂时生效 防火墙
+  　　vi /etc/selinux/config    SELINUX =disabled  永久生效  防火墙
+        iptables -F   清空
+　　  /etc/init.d/iptables save  保存iptables  
+　　  登陆putty  Connection -SSH - Auth - browse   - private key -login
+
+9. 如何临时关闭selinux？如何永久关闭selinux？
+　　setenforce 0   临时关闭   vi /etc/selinux/config    SELINUX =disabled  永久生效 
+10. 怎么临时配置主机名？又如何让它重启后依然生效？
+　　hostname newname 该设置为临时生效。重新启动系统后，设置失效
+
+　　vim /etc/sysconfig/network  HOSTNAME=newname  表示主机设置为newname . 需要重启系统后生效
+11. 查看linux有几块网卡以及网卡ip用什么命令？
+　　　　ifconfig -a    ip address 
+12. CentOS下可以使用setup命令给网卡配置ip，如果没有安装这个命令如何安装？
+　　　　yum install -y 
+13. 查看一块网卡是否连接着网线的命令是？
+　　　　ifconfig -a    /mii-tool（这是Linux下专门设置网卡工作模式的命令）
+14. 查看系统时间的命令是什么？如何更改系统时间？
+　　　　date  
+15. 如何调整putty显示的字体以及大小？ 如何更改putty的字符集，让其支持中文显示？
+　　　　 Window/Translation :UTF-8  
+练习6、 
+1. rmdir -p  用来删除一串目录，比如 rmdir  -p /tmp/test/1/2/3  如果 /tmp/1/2/ 下面除了3目录外还有个4目录，4目录里还有个5目录，那么是否可以成功删除？   rmdir -p  删除一个不存在的目录时是否报错呢？
+　　rmdir 只可以删除空目录， 如果删除目录非空，则无法删除。
+
+　　显示没有该目录
+2. 删除一个目录或者文件时，在删除之前会先问一下我们是否删除，如果直接回车，是否删除呢？如果输入的不是'y' 也 不是'n' 会发生什么？
+　　只有输入y 才会删除文件或目录，其他输入都无法删除。
+3. 我想创建一串目录时如何建，比如/home/1/2/3/4.
+　　mkdir -p /home/1/2/3/4
+4. 使用mv命令时，如果目标文件为非目录且存在的文件，会怎么样？
+　　将该文件剪切至目标目录，并覆盖该文件， 修改该文件的ctime为覆盖时间， atime,mtime为源文件的时间。
+5. 使用less  查看文件/etc/passwd  搜索一下一共出现几个‘root', 按哪个键可以向上/向下一行一行的移动？
+　　less /etc/passwd|  grep -c "root"     y/ 空格  pageup/pagedown
+
+　　less /etc/passwd     /root   n 向下搜索，  N 向上搜索
+6. 请想一想如果我们给某个目录的权限设置成rwxrw-rw-，那么其他用户能否ls该目录下的内容，能否进入到该目录下？
+　　不能查看ls 目录下的内容信息，  没有执行权限，无法cd 到该目录，自然也不能看到目录下的内容， 只能查看该目录的信息。
+7. 如果设置 umask 为 001 , 那么用户默认创建的目录和文件的权限是什么样子的？
+　　目录  (rwxrwxrwx)-(umask)=(目录权限），本例中umask=001=（--------x),所以目录的权限是(rwxrwxrwx)-（--------x)=（rwxrwxrw-）=776
+
+　　文件 (rw-rw-rw-)-(umask)=(文件权限），本例中umask=001=（--------x),所以文件的权限是(rw-rw-rw-)-(--------x)=(rw-rw-rw-)=666
+8. 用find找出 /var/ 目录下，最近一天内变更的文件？再用find找出 /root/ 目录下一小时内变更的文件？
+　　find /var/ -type f  -mtime -1       find /root/ -type f  -mmin -1 
+9. 用find找出 /etc/ 目录下，一年内从未变更过的文件？
+　　find /etc/ -type f  !  -mtime -365 
+10. 为什么硬链接不能链接目录？ 硬链接的文件是否占用空间大小，硬链接文件是否可以跨分区创建？
+
+　　*因为每个目录下面都会有一个.和..也就是说每个目录下面的子目录肯定会有它本身和它上一级目录，那么一旦设置了硬链接则会造成一种混乱，设置会导致死循环。
+　　1.硬链接，以文件副本的形式存在。但不占用实际空间。 
+　　2.不允许给目录创建硬链接 
+　　3.硬链接只有在同一个文件系统中才能创建 ，不能跨分区创建。
+11. Linux系统里，分别用什么符号表示: 普通文本文件、二进制文件、目录、链接文件、块设备、套接字文件以及串行端口设备？
+　　f/- : 普通，二进制； d : 目录； l： 链接； b: 块 ；s: 套接字 ; c : 串行
+12. 如何把把dira目录以及目录下的所有文件及目录修改为所属主为user1, 所属组为users？
+　　chmod -R user1:users dira
+13. Linux系统，默认目录的权限为什么？文档的权限是什么？用三个数字表示。我们可以通过修改umask的值更改目录和文档的默认权限值，我们如何通过umask的值得到默认权限值？
+　　目录：　rwxrwxrwx 777； 文档： rw-rw-rw-   666；   (rwxrwxrwx)-(umask)=(目录权限）；文件 (rw-rw-rw-)-(umask)=(文件权限）
+14. 修改dirb目录的权限，使所属主可读可写可执行，所属组可读可执行，其他用户不可读不可写也不可执行，使用什么命令？
+　　*chmod 750 dirb
+15. 如何使文件只能写不能删除？ 如何使文件不能被删除、重命名、设定链接接、写入、新增数据？
+　　chattr  +a ,   chattr    +i 
+16. Linux 下一个点 '.' 和两个点 '..' 分别表示什么？
+　　. 代表本身   ..代表父级目录
+17.  cd -  表示什么含义？
+　　 回到上次执行的目录
+18.  用ls 查看目录或者文件时，第二列的数值表示什么意思？如果一个目录的这列的值为3，那么这个3是如何得到的？
+　　代表硬链接数，  代表一个. 本身链接  ..父级链接  和一个其他硬链接
+
+　　*第二列数值表示有几个文件使用相同的inode，如果一个目录的这列为3，我们可以通过使用 ls -al dir/ |grep '^d'|wc -l 这条命令得到 
+19. 如果没有locate命令，需要我们安装哪个包？初次使用locate命令会报错“can not open `/var/lib/mlocate/mlocate.db': No such file or directory”， 需要我们如何做呢？
+　　yum install -y mlocate    updatedb
+20. 当拷贝一个文件时，如果目标文件存在会问我们是否覆盖，如何做就不再询问了？
+　　cp -f   、/bin/cp  
+21. 如何动态显示一个文件的内容，假如这个文件内容一直再增加。
+　　tail -f file 
+22. 更改文件读写执行权限的命令是什么？如何把一个目录下的所有文件(不含目录)权限改为644？
+　　chmod      find  目录  -type f | xargs chmod 644 
+23. 如何查看当前用户的家目录是什么?
+　　   echo ~username   echo $HOME
+24. 假如一个目录可以让任何人可写，那么如何能做到该目录下的文件只允许文件的所有者更改？
+　　 chmod o+wt dir
+25. 简述软链接和硬链接的区别?
+　　硬链接和软连接 
+　　硬链接：ln file1 file2 : 文件内容一致，inode一致，同时引用了一个inode编号 
+　　软连接：ln -s file1 file2 : 文件内容一致，inode不一致，记录的是原始文件的路径名称 
+　　创建连接：	硬链接不产生新的inode， 软连接生成新inode
+　　删除源文件： 硬链接无影响， 软连接同时删除。
+　　修改源文件： 连接文件同时修改 。 
+　　创建目录：	硬链接无法指向目录， 软连接可以指向目录。
+　　分区创建： 硬链接无法跨分区设备连接，软连接可以跨分区设备连接。
+26. cat a.txt 会更改a.txt的什么时间?  chmod 644 a.txt 会更改a.txt的什么时间? vim呢? 直接touch呢?
+　　cat： atime   ;  chmod : ctime ;  vim: atime,  mtime,ctime ; touch : atime ctime mtime  
+ 
+练习7、
+1. 查看配置文件/etc/shadow第一行中root账号的第三个字段（以':'分隔）中的数字，请算一下这个数字是怎么来的 
+距离1970年1月1日到上次更改密码的时间的间隔天数。例如root密码日期更改时间为2013年9月1日星期日，那么配置文件/etc/shadow中root的第三个字段为15949，计算如下： 
+15949 = (2013-1970)*365+mod((2013-1970)/4)+(5*31+2*30+28)+1=15695+10+241+1=15949 
+
+2. 写出一个您认为很强悍的密码. 
+2zbzhsi4#fega8 
+
+3. 查资料搞明白 /sbin/nologin 和 /bin/false 的区别，您知道他们用在什么场合吗 
+/sbin/nologin 不允许账号登陆，但是可以使用在ftp账号上，也就是说ftp账号即使设置了该项也可以通过ftp登陆 
+/bin/false 严格禁止用户登录系统，禁止使用一切服务 
+
+4. 请想一想，当我们创建一个新的账号时，系统会修改哪几个文件呢 
+/etc/passwd 
+/etc/shadow 
+/etc/group 
+/etc/gshadow 
+
+5. 假如我们已经创建了一个普通用户user1, 默认这个用户的家目录为/home/user1, 做实验证明能否直接修改/etc/passwd配置文件中user1的家目录那个字段而改变user1的家目录呢 （提示: 您可以使用 “cd ~ ”命令来进入当前用户家目录的方法来验证） 
+[root@uhza006714 ~]# useradd user1 
+[root@uhza006714 ~]# grep user1 /etc/passwd 
+user1:x:502:503::/home/user1:/bin/bash 
+[root@uhza006714 ~]# sed -i 's#/home/user1#/tmp#' /etc/passwd 
+[root@uhza006714 ~]# grep user1 /etc/passwd 
+user1:x:502:503::/tmp:/bin/bash 
+[root@uhza006714 ~]# su - user1 
+-bash-3.2$ echo $home 
+/tmp 
+-bash-3.2$ cd 
+-bash-3.2$ pwd 
+/tmp 
+证明可以通过更改/etc/passwd而更改用户的家目录 
+
+6. /etc/passwd 文件以":"为分隔符，第三和第四个字段表示什么含义如果把某一行的第三个字段改为'0' 会发生什么 
+第三个表示用户id，第四个为组id，如果把第三个字段改为0，则该用户变成root 
+
+7. 先新增一个组group11，然后再新增一个账号user12, 使该账号所属组为刚刚新增的组。 
+groupadd group11; useradd -g group11 user12 
+
+8. 如果删除一个组时报错: “cannot remove the primary group of user 'jzc'” 这是什么意思如何解决该问题呢
+这是因为删除的组内有用户，需要先删除该组内的账号，再删除组 
+
+9. 如何删除某个账户时，连带这个账户的家目录一并删除 
+userdel -r username 
+
+10. 如果您的linux没有命令"mkpasswd", 需要安装哪个包 
+yum install -y expect 
+
+
+11. 普通账户可以修改自己的密码吗 
+可以修改 
+
+12. 使用su时，后面加了 '-' 表示什么含义 
+完全切换至用户的登录环境。
+13. sudo的作用是什么呢 
+使用sudo可以使普通账户不用知道root的密码而临时拥有root的权限，这是为了提高安全性 
+
+14. 创建系统账号时，帐户名要符合什么样的规范 
+可以是大小写字母、数字、减号（不能出现在首位）、点以及下划线，其他字符不合法。虽然用户名中可以出现点，但不建议使用，尤其是首位为点时，另外减号也不建议使用，因为容易造成混淆。 
+
+15. linux系统里，你知道最大uid能有多大吗默认创建一个普通帐号的uid最小是多少 
+普通用户的uid最大为65535，目前的 linux 核心 (2.6.x 版)已经可以最大支持到 4294967295 (2^32-1) 。默认普通账号的最小uid为500 
+
+16. 请思考，一个用户可以同时属于多个用户组吗如果可以，如何把一个用户加入到另外的组里 同时加入多个组怎么做 
+可以同时属于多个用户组，usermod -g group1,group2,group3 username 
+
+
+练习8、
+1. 请查资料了解这些术语：/dev/hda, /dev/hdb, /dev/sda, /dev/sdb, 他们之间有什么区别 
+/dev/hda, /dev/hdb是ide接口硬盘的块文件。/dev/hda表示第一块ide磁盘，/dev/hdb表示第二块ide磁盘。 
+/dev/sda, /dev/sdb是scsi接口硬盘的块文件。/dev/sda表示第一块scsi磁盘，/dev/sdb表示第二块scsi磁盘。 
+
+2. 为什么 du -b /etc/passwd 和 du -k /etc/passwd 所得到的结果不一致呢按道理讲1024b 等于 1k 我的 /etc/passwd 为 1181b 而 使用k为单位表示它竟然是 4k. 
+因为默认格式化磁盘的块大小是4096字节即4k,即使是一个很小的文件也会分得一个块大小为4k。du -b则会以文件大小的b单位来统计，所以结果不一致。 
+
+3. 请查资料，了解磁盘的这些概念： heads, sectors, cylinders. 
+磁头（heads）: 磁头固定在可移动的机械臂上，用于读写数据。现代硬盘都是双面可读写，因此磁头数量等于盘片数的2倍。磁头数最大值为 255 (8 个二进制位)。用第几磁头可以表示数据在哪个磁面。 
+扇区（sectors）: 从磁盘中心向外画直线，可以将磁道划分为若干个弧段。每个磁道上一个弧段被称之为一个扇区。扇区是硬盘的最小组成单元，通常是512字节。磁道上的扇区数最大为63(6个二进制位)。 
+柱面（cylinders）: 所有磁片中半径相同的同心磁道构成“柱面"。柱面数最大为1023 (10个二进制位)。柱面是磁盘分区的最小单位。 
+
+4. 请计算磁盘分区的时候，每一个柱面空间是多大 我的第二块磁盘是8589 mb （8589934592 bytes），总共有1044个柱面。 
+柱面空间大小=磁头数*每磁道扇区数*扇区大小=255*63*512（bytes）=8225280 bytes 
+
+5. 查资料了解ide和scsi接口的磁盘有什么不一样，scsi 磁盘(sda, sdb）最多可以分多少个逻辑分区（这个了解即可） 
+scsi硬盘和普通ide硬盘相比有很多优点：接口速度快，并且由于主要用于服务器，因此硬盘本身的性能也比较高，硬盘转速快，缓存容量大，cpu占用率低，扩展性远优于ide硬盘，并且支持热插拔。 
+关于最多可以分多少个逻辑分区的问题，了解即可。 
+
+6. 把磁盘格式化成ext4文件系统时，如果指定块大小并不是 1024 2048 4096 会发生什么指定块大小最小是多少，最大又是多少 
+当格式化文件系统时，如果指定块大小不是1024、2048、4096这几个标准值，会出现下面几种情况： 
+
+
+    （1）当指定块小于1024时，则提示错误“无效的块大小”，不能格式化。 
+
+
+    （2）当指定块大于1024且小于2048时，则实际以1024的块大小进行格式化。 
+（3）当指定块大于2048且小于4096时，则实际以2048的块大小进行格式化。 
+（4）当指定块大于4096且小于或等于65536时，则提示块值太大，是否继续，选择y继续，则以不大于指定块的4k的整数倍值（从4k到32k）进行格式化。 
+（5）当指定块大于等于65536时，则提示块值太大，是否继续，选择y继续，则以65536字节进行格式化。 
+（6）当指定块大于65536时，则提示错误“无效的块大小”，不能格式化。 
+
+7. 如何查看当前系统里各个分区都是什么类型的文件系统 
+mount 或者 df -t 
+
+8. /dev/zero 和 /dev/null 在linux系统中是什么文件，有什么作用 
+/dev/zero 是一个造零器，它可以源源不断的提供0，它可以用于向设备或文件写入字符串0，可以用它来创建一个指定长度用于初始化的空文件，比如临时交换文件等。 
+/dev/null 它是空设备，也称为位桶（bit bucket），任何写入它的输出都会被抛弃。常用来禁止标准输出和标准错误的输出。如果不想让消息以标准输出显示或写入文件，那么可以将消息重定向到位桶。 
+
+9. linux下df 和 du 两个命令主要用来做什么 
+df 查看磁盘分区和文件系统信息 
+du 查看目录或文件所占用的磁盘空间大小 
+
+10. 在linux系统下，用什么命令为一个新磁盘分区呢又用什么命令格式化磁盘 
+fdisk 为新磁盘分区，可以使用mkfs.ext2、mkfs.ext3、mkfs.ext4、mke2fs等命令格式化磁盘。 
+
+11. 如果不能使用mount 挂载磁盘时，我们需要使用什么命令获取相关错误信息 
+dmesg 
+
+12. 当卸载某个磁盘或者分区时，报错： “umount: /newdir: device is busy.” 我们如何做 
+报这个错，可能是因为当前用户在/newdir目录下，可以先退出这个目录来，也可以使用命令 umount -l /newdir 
+
+13. 如何获取某个分区的uuid 
+blkid 
+
+14. 如何使用dd命令生成一个大小为500m的文件 
+dd if=/dev/zero of=/bigfile bs=1024k count=500 
+
+15. 查看内存大小的命令是 如何以m为单位显示 
+free -m 
+
+16. 如何查看各文件系统的inode数使用情况 
+df -i 
+
+17. 使用vmware虚拟机分配一块1g的虚拟磁盘，并使用fdisk 分区工具给新加的磁盘分3个主分区，分别200m，然后再分3个逻辑分区，分别100m. 
+fdisk /dev/sdb 回车后，先按n，按p，输入1，再输入1，再输入+200m；按n，按p，输入2，再回车，再输入+200m；按n，按p，输入3，再回车，再输入+200m；按n，按e,接着按两次回车；按n，接着回车，输入+100m；按n，接着回车，输入+100m；按n，接着回车，输入+100m； 
+
+18. 给磁盘分区的时候，最多可以分几个主分区，最多可以分几个扩展分区，扩展分区和逻辑分区的关系时什么
+最多4个主分区，最多一个扩展分区，只有划分了扩展分区后，才可以在扩展分区内划分逻辑分区，也就是说逻辑分区是在扩展分区内的。 
+
+19. 我使用fdisk -l /dev/sdb 查看磁盘分区状况的时候，发现有这么几个分区： sdb1, sdb3, sdb5, sdb6, sdb7， 那么请推算一下，这个磁盘，共有几个主分区和几个逻辑分区 
+一个主分区，三个逻辑分区（sdb5,sdb6,sdb7) 
+
+20. 有什么方法可以查看某个分区格式化时指定的块大小为多少（1024,2048,4096） 
+有两种方法： 
+第一个是个笨方法，touch 1; echo 1 > 1; du -sh 1 看看1的大小事几k，是1k块大小就是1024，2k块大小就是2048,4k块大小就是4096 
+第二个方法是，tune2fs -l /dev/sda1 |grep 'block size' 
+
+
+
+
+练习9、
+1. vi 与 vim 有什么区别呢，它们之间有什么关系 
+vim是从vi发展出来的一个文本编辑器，可以看作是vi的升级版。vim的主要功能与原始的vi完全兼容，与vi不同的是，vi不会显示颜色，而vim会根据文件内容显示不同颜色，方便阅读和编辑。而且vim具有代码补完、编译及错误跳转等方便编程的丰富功能，在程序员中被广泛使用。（ vim和emacs并列成为类unix系统用户最喜欢的编辑器。） 
+
+2. 如何查看当前系统vim的版本 
+vim --version 
+
+3. 如果想把文档中出现的全部"abc"替换成"def"怎么做又如何只替换每行中出现的第一个"abc"呢 
+:1,$s/abc/def/g 
+:1,$s/abc/def 
+
+4. 当搜索某个关键词时，光标所定位的关键词所在的行是如何决定的也就是说，光标是定位到最顶端出现的关键词的那行还是最底端关键词出现的那行，还是另外的情况如果想从当前关键词移动到下一个关键词怎么操作移动到上一个关键词又怎么操作 
+需要看vim进入文档时，光标所在位置，定位关键词是依据于光标所在的位置。 
+如果使用/搜索关键词，则按‘n'向下移动，按shift + n 向上，如果使用搜索关键词，和前者正好相反。 
+
+5. 当编辑完文档后，按esc进入命令模式，输入命令 :x 会怎么样 
+输入命令:x后也能保存文件并退出，有点类似:wq ,但两者有区别。 
+:x #写入文件并退出。仅当文件被修改时才写入，并更新文件修改时间，否则不会更新文件修改时间。 
+:wq #强制性写入文件并退出。即使文件没有被修改也强制写入，并更新文件的修改时间。 
+
+6. 在一般模式下如何快速的把光标快速的向右或向左移动10个字符 
+向右：10空格 
+向左：10l 
+
+7. vim + filename 表示什么含义， vim +10 filename 将会发生什么 
+vim + 进入文档后，定位到最后一行 
+vim +10 进入文档后，光标定位到第10行 
+
+8. 用vim打开一个文档后，我想让光标跳到第20行，怎么做跳到最后一行怎么做 
+跳到20行，输入20g 
+最后一行，输入g 
+
+9. vim 打开文档后，默认是不显示行号的，如何做让它显示行号 
+:set nu 
+
+10. vim打开文档后，我想把20-50行中的第一个'abc' 替换为 'efg' 怎么操作如果是想替换所有呢 
+:20,50s/abc/efg 只替换第一个 
+:20,50s/abc/efg/g 替换全部 
+
+11. vim打开文档后，如何快速删除前100行 
+先按'gg' 到第一行，然后输入100d 
+
+12. vim打开文档后，如何复制一行，并粘贴到第20行的下面 
+定位到要复制的行，然后输入yy，然后输入20g，再输入p 
+
+
+练习10、
+1. gzip, bzip2 能否直接压缩目录呢 
+不能直接压缩目录 
+
+2. 请快速写出，使用gzip和bzip2压缩和解压一个文件的命令。 
+gzip 1.txt 
+gzip -d 1.txt.gz 
+bzip2 1.txt 
+bzip2 -d 1.txt.bz2 
+
+3. tar 在打包的时候，如果想排除多个文件或者目录如何操作 
+tar cvf 123.tar --exclude a.txt --exclude b.txt 123/ 
+
+4. 请实验，如果不加 "-" 是否正确， 如 tar zcvf 1.tar.gz 1.txt 2.txt 
+不加 - 一样没有问题 
+
+5. 如何使用tar打包和解包 .tar.gz, .tar.bz2 的压缩包 
+tar zcvf 1.tar.gz 1 
+tar zxvf 1.tar.gz 
+tar jcvf 1.tar.bz2 1 
+tar jxvf 1.tar.bz2 
+
+6. 找一个大点的文件，使用tar 分别把这个文件打成 .tar.gz和.tar.bz2 压缩包，比较一下哪个包会更小，从而得出结论，是gzip压缩效果好还是bzip2压缩效果好 
+理论上.tar.bz2的压缩包小一些，但个别时候，有相反的情况。但大多时候bzip2压缩效果好。 
+
+7. 使用tar打包并压缩的时候，默认压缩级别为几 想一想如何能够改变压缩级别呢（提示，tar本身没有这个功能哦，可以尝试拆分打包和压缩） 
+tar打包压缩时，是按照gzip和bzip2的默认压缩级别来的，gzip工具默认压缩级别为6，bzip2默认压缩级别为9. 
+改变默认压缩级别可以这样来做，首先tar打包，然后再使用gzip或者bzip2压缩工具来压缩，压缩的时候指定压缩级别。如： tar cvf 1.tar 123/; gzip -2 1.tar 
+ 
+
+练习11、
+1. 区分 rpm -qi -qf -ql -qa四个不同选项组合的作用 
+rpm -qi //查询已经安装的某个rpm软件包的信息 
+rpm -qf //查询某个程序文件是由哪个rpm软件包安装的 
+rpm -ql //查询某个rpm软件包的所有安装文件 
+rpm -qa //查询所有已经安装的rpm软件包 
+
+2. rpm -qi 后面如果跟一个未安装的包名，会显示什么信息 
+会提示该软件包没有安装 
+
+3. 请找出 vim 这个命令是由哪个rpm包安装来的 
+rpm -qf `which vim` 
+
+4. 使用rpm安装和卸载某个包的命令是什么 
+rpm -ivh rpm包文件名 
+rpm -e 包名 
+
+5. rpm安装某个包有依赖关系时，如何忽略依赖关系，强制安装该包 
+rpm -ivh --nodeps 
+
+6. 如何使用rpm升级一个包 
+rpm -uvh 
+
+7. 使用yum搜索包含关键词 "tidy" 的rpm包，并安装，安装后再使用yum将其卸载。 
+yum list |grep tidy 
+yum install -y tidy tidy-devel 
+yum remove -y tidy tidy-devel 
+
+8. 如何使用yum来下载一个rpm包 
+yum install -y --downloadonly --downloaddir=/usr/local/src 
+
+10. 查资料搞明白 yum upgrade 以及 yum update 两者的区别它们在什么情况下使用 
+yum upgrade与yum update都能更新系统的所有软件包，不同的就是upgrade相当一次大规模的升级，连带了旧的要淘汰的包也升级。update 和 upgrade 的侧重点不一样，update主要是使软件达到最新，但upgrade更侧重的是软件功能得到一个很大的提升，区别于频繁的发布最新的补丁。upgrade不改变软件设置和系统设置，系统版本升级，内核不改变；update改变软件设置和系统设置,系统版本内核都升级。 
+yum upgrade : 用于大规模的版本升级,更新linux系统和整个软件版本 
+yum update : 用于安装补丁文件，更新内核和软件包到最新 
+
+11. 如何查看linux系统中(centos）是否安装过某个包 
+rpm -qa | grep 包名 
+
+12. ./configure 完成后，并不知道到底有没有成功，用什么命令可以验证呢 
+echo $ 
+
+13. 如果在./configure 这一步出现这样的错误"configure: error: no acceptable c compiler found in $path" 我们该怎么办 
+yum install -y gcc 
+
+14. 有时，你忘记某个编译参数是如何写的，你怎么办 
+./configure --help 
+
+15. 如何使用光盘构建yum仓库 
+a）挂载光盘 mount /dev/cdrom /mnt 
+b）删除/etc/yum.repos.d目录所有的repo文件 rm -rf /etc/yum.repos.d/* 
+c） 创建新文件dvd.repo 
+[root@localhost ~]# vim /etc/yum.repos.d/dvd.repo 
+加入以下内容： 
+[dvd] 
+name=install dvd 
+baseurl=file:///mnt 
+enabled=1 
+gpgcheck=0 
+d） 刷新 repos 生成缓存 # yum makecache 
+ 
+练习12、 
+1. 设置环境变量 histsize , 使其能够保存10000条命令历史。 
+vim /etc/profile 
+把 histsize=1000 改为 histsize=10000 
+
+2. 为什么如果这样设置ps1 (ps1="[u@h w]$ ") 显示的结果和我们预想的不一样，那要如何设置才能恢复原来默认的 
+应该是 ps1='[u@h w]$ ' 
+
+3. 想办法把当前目录下的文件的文件名中的小写字母全部替换为大写字母。 
+for f in `ls`; do if echo $f |grep -q '[a-z]'; then mv $f `echo $f|tr '[a-z]' '[a-z]'`;fi; done 
+
+4. 使用sort以":"为分隔符，对/etc/passwd文件的第5段排序。 
+sort -t: -k5 /etc/passwd 
+
+5. 使用cut以":"为分隔符，截出/etc/passwd的第三段字符。 
+cut -d: -f3 /etc/passwd 
+
+6. 简述这几个文件的作用： /etc/profile, /etc/bashrc, .bashrc, .bash_profile. 
+/etc/profile : 设置系统全局环境变量和启动程序，当用户登录linux时,该文件被执行，并从/etc/profile.d目录的配置文件中搜集shell的设置。预设的系统全局变量包括path、user、logname、mail、inputrc、hostname、histsize、umask等。 
+/etc/bashrc : 为每一个运行bash shell的用户执行此文件。当bash shell被打开时,该文件被读取。默认情况下，这个文件主要预设umask以及ps1等。 
+.bash_profile : 定义用户专有的环境变量和启动程序。当用户登录时,该文件仅仅执行一次。 默认情况下,它设置了一些环境变量,执行用户的.bashrc文件。 
+.bashrc ：该文件包含专用于用户的shell的bash信息,当用户登录时以及每次打开新的shell时,该该文件被读取。可以将用户自定义的alias和变量写到这个文件中。 
+
+7. export 的作用是什么 
+export 用来声明变量，可以使声明的变量在子shell中生效 
+
+8. linux下自定义变量要符合什么样的规则呢 
+(1) 设定变量的格式为“a=b”, 其中a为变量名，b为变量的内容，等号两边不能有空格； 
+(2)变量名只能由英、数字以及下划线组成，而且不能以数字开头； 
+(3)当变量内容带有特殊字符（如空格）时，需要加上单引号,变量内容中本身带有单引号的情况则使用双引号；
+(4)如果变量内容中需要用到其他命令运行结果则可以使用反引号； 
+(5)变量内容可以累加其他变量的内容，需要加双引号。 
+
+9. 如何把要运行的命令丢到后台跑又如何把后台跑的进程给调到前台 
+要将运行的命令丢到后台，可以先按ctrl+z让其暂停，然后使用bg命令将其丢到后台运行；或者执行命令时添加&后台标识，格式为“命令+空格+&”。 
+将后台运行的进程调到前台，可以输入fg快捷键。 
+
+10. 列出当前目录下以"test"开头的文件和目录。 
+ls -d test* 
+
+11. 如何把一个命令的输出内容不仅打印到屏幕上而且还可以重定向到一个文件内 
+使用tee命令，如 cat /etc/passwd |tee 2.txt 
+
+12. 假如有个命令很长，我们如何使用一个简单的字符串代替这个复杂的命令呢请举例说明。 
+使用alias 如 alias abc="/usr/local/apache/bin/apachectl -t" 
+
+13. 我如何实现这样的功能，把一条命令丢到后台运行，而且把其正确输出和错误输出同时重定向到一个文件内
+vmstat 1 > /tmp/1.log 2>&1 & 
+
+14. 如何按照大小（假如按照10m)分隔一个大文件，又如何按照行数(假如10000行)分隔 
+split -b 10m bigfile 
+split -l 10000 bigfile 
+
+15. 做实验，搞明白 ; && || 这三个符号的含义。 
+; 只是用来分割多个命令，各条命令相互独立运行，没有任何关联性。 
+&& 只有前面的命令成功执行后，后面的命令才会执行。如果前面的命令执行失败，则忽略后面的命令。 
+|| 多条命令中只要一条命令执行成功，则忽略后面的命令，否则运行后面的命令。 
+
+16. 如果只想让某个用户使用某个变量如何做 
+vim /home/username/.bashrc 增加一行 export abc=123 
+然后再 source /home/username/.bashrc 
+
+17. 使用哪个命令会把系统当中所有的变量以及当前用户定义的自定义变量列出来 
+set 
+
+ 
+练习13、 
+1. 如何把 /etc/passwd 中用户uid 大于500 的行给打印出来 
+awk -f ':' '$3 > 500' /etc/passwd 
+
+2. awk中 nr，nf两个变量表示什么含义awk -f ':' '{print $nr}' /etc/passwd 会打印出什么结果出来 
+nr表示行数，nf表示一共有多少段 
+awk -f ':' '{print $nr}' /etc/passwd 会依次打印对应的行数的段，第一行打印第一段，第二行打印第二段... 到了最后就打印空行了 
+
+3. 用grep把1.txt文档中包含'abc'或者‘123’的行过滤出来，并在过滤出来的行前面加上行号. 
+grep -e -n 'abc|123' 1.txt 
+
+4. grep -v '^$' 1.txt 这样会过滤出哪些行 
+会把非空行过滤出来 
+
+5. '.' '*' 和 '.*' 分别表示什么含义'+'和''表示什么含义，这五个符号是否可以在grep中使用，是否可以在egrep、sed以及awk中使用 
+'.' 表示一个任意的字符； 
+'*' 表示前面紧邻的那个字符有零个或多个，即前面紧邻的那个字符可以不存在，也可以有多个； 
+'.*' 表示零个或多个的任意字符，包括空行； 
+'+' 表示前面紧邻的那个字符有一个或多个； 
+'' 表示前面紧邻的那个字符有零个或一个； 
+grep和sed可以使用'.' 、 '*' 和 '.*'，但是不能使用'+'和'' egrep和awk全部可以使用。 
+
+6. grep 里面用到一个 {} ，它用在什么情况下 
+{ }，其内部为数字，表示前面的字符要重复的次数。数字可以是单个数字{n}，也可以是一个区间{n1,n2}。注意，在字符串中，{ }左右都需要加上脱意字符 ‘’。 
+例如， grep 'o{3}' /etc/passwd //输出有3连续的'o'的行 
+
+7. sed有一个选项，可以直接更改文本文件，是哪个选项 
+-i 
+
+8. sed -i 's/.*ie//;s/["|&].*//' file 这条命令表示什么操作呢 
+该命令由；分割了两部分，首先第一部分表示把file中出现的以ie结尾的字符串删除， 
+第二部分是把file中以"或|或&开头的字符串删除 
+
+9. 如何删除一个文档中的所有数字或者字母 
+删除所有数字： sed -i 's/[0-9]//g' file 
+删除所有字母： sed -i 's/[a-z]//g' file 
+
+10. 截取日志1.log的第一段(以空格为分隔符), 按数字排序、然后去重，但是需要保留重复的数量如何做 
+awk '{print $1}' 1.log |sort -n|uniq -c|sort -n 
+
+11. 使用awk过滤出1.log中第7段(空格分隔)为'200' 并且第8段为'11897'的行。 
+awk '$7 == "200" && $8 == "11897"' 1.log 
+
+12. 请比较这两个命令的异同： grep -v '^[0-9]' 1.txt 和 grep '^[^0-9]' 1.txt 
+grep -v '^[0-9]' 1.txt //输出文件中不以数字开头的行，但输出空行 
+grep '^[^0-9]' 1.txt //输出文件中不以数字开头的行，但不输出空行 
+
+13. awk中的$0表示什么为什么以下两条命令的$0结果不一致呢 awk -f ':' '{print $0}' 1.txt 和 awk -f ':' '$7=1 {print $0}' 1.txt 
+awk -f ':' '{print $0}' 1.txt //打印所有的行 ，即整个记录 
+awk -f ':' '$7=1 {print $0}' 1.txt //以冒号为分隔符，输出时将每行的第七段的内容更改为1，并打印所有的行,此时并不会连带分隔符一起输出 
+
+14. 使用grep过滤某个关键词时，如何把包含关键词的行连同上面一行打印出来，那下面一行呢同时上面和下面都打印出来呢 
+grep -b1 上面一行 
+grep -a1 下面一行 
+grep -c1 上下各一行 
+
+ 
+练习14、 
+1. shell脚本中，怎么做可以把某一行给注释掉 
+在该行的最前面加一个警号# 
+
+2. 如何执行一个shell脚本呢 
+bash 1.sh 或者 chmod +x 1.sh; ./1.sh 
+
+3. 为了方便管理，我们约定把shell脚本都放到哪个目录下 
+放到 /usr/local/sbin/下 
+
+4. 为了更好的调试shell脚本，我们可以加一个选项来观察shell脚本的执行过程，是哪个选项呢 
+bash -x 1.sh 
+
+5. 使用date命令打印5天前的日期，要求日期格式为: xxxx-xx-xx 
+date -d "5 days ago" +%y-%m-%d 
+或者 date -d "-5 day" +%f 
+
+6. 请判断，我的脚本哪里有问题 
+#! /bin/bash 
+
+a = 1 
+b = 2 
+echo $a, $b 
+
+赋值变量值的时候，带了空格 
+
+7. shell脚本中如何使用数学运算请举例说明。 
+a=1; b=2 
+c=$[$a+$b] 
+echo $c 
+
+8. shell脚本中有一个命令可以实现脚本和用户交互，请问是哪个命令，怎么使用 
+read -p 
+例如 
+read -p "please input a number" n 
+这样会把用户输入的内容作为n这个变量的值 
+
+9. 在shell中如何进行大小或者等于判断 
+大于 -gt 小于是 -lt 等于是 -ne 大于等于是 -ge 小于等于是 -le 格式如下： 
+if [ $a -ge 0 ]; then ... ;fi 
+
+10. shell脚本中，用什么符号表示并且，用什么符号表示或者 
+&& 并且 
+|| 或者 
+
+11. shell脚本中，case逻辑判断的结构是什么样的 
+case $a in 
+1) 
+command 
+;; 
+2) 
+command 
+;; 
+*) 
+command 
+;; 
+esac 
+
+12. 列举出shell脚本中常用的循环结构。 
+for a in ... ; do ... ; done 
+while ...; do ...; done 
+
+13. shell脚本中函数的作用是什么函数结构是什么样的 
+函数可以理解成shell脚本中一个小代码单元，当要用到这段代码时直接调用函数名即可，从而避免重复书写这段代码，提高代码书写效率和质量。 
+函数的结构为 
+function fu_name() { 
+..... 
+} 
+
+14. 写脚本实现，把一个目录下的所有文件（不含有目录）全部在文件名后面加一个.bak 
+#! /bin/bash 
+
+for f in `find . -type f`; do mv $f $f.bak; done 
+
+15. 编写一个shell脚本，将当前目录下大小大于100k的文件全部移动到/tmp/ 目录下。 
+for f in `find . -type f -size +100k`; do mv $f /tmp/ ; done 
+
+16. 写一个小脚本，获取本机的hostname、ip地址以及dns地址。 
+#!/bin/bash 
+
+hostname=`hostname` 
+echo "hostname : " $hostname 
+ip=`/sbin/ifconfig -a | grep 'inet addr' | awk -f ':' '{print $2}' | awk '{print $1}'` 
+for i in $ip 
+do 
+echo "`ifconfig | grep -b1 "$i" | grep -v 'inet addr' | awk '{print $1}'` "$i"" 
+done 
+dns=`cat /etc/resolv.conf |grep nameserver|grep -v '#'` 
+echo $dns 
+
+17. 写两个小脚本验证break和continue在循环中的作用。 
+#!/bin/bash 
+for i in `seq 1 5` 
+echo $i 
+do 
+if [ $1 -eq 3 ] 
+then 
+break 
+fi 
+echo $i 
+done 
+输出结果是；1 1 2 2 3 到最后一个echo 没有输出 结束了当前层 
+
+
+将上面的break 换成 continue 
+结果是： 1 1 2 2 3 4 4 5 5 
+当等于3的时候下面那句不执行， 
+继续执行 之一到5 
+
+ 
+练习15、 
+1. 如何看当前linux系统有几颗物理cpu和每颗cpu的核数 
+物理cpu个数：cat /proc/cpuinfo |grep -c 'physical id' 
+cpu一共有多少核：grep -c processor /proc/cpuinfo 
+将cpu的总核数除以物理cpu的个数，得到每颗cpu的核数。 
+
+2. 查看系统负载有两个常用的命令，是哪两个这三个数值表示什么含义呢 
+两个命令分别是 w 和 uptime 
+这三个系统负载值分别表示在1分钟、5分钟和15分钟内平均有多少个任务处于活动状态。 
+
+3. vmstat r, b, si, so, bi, bo 这几列表示什么含义呢 
+r 表示运行和等待cpu时间片的进程数 
+b 表示等待资源的进程数，比如等待i/o, 内存等 
+si 表示由交换区进入内存的数量 
+so 由内存进入交换区的数量 
+bi 从块设备读取数据的量（读磁盘） 
+bo 从块设备写入数据的量（写磁盘） 
+
+4. linux系统里，您知道buffer和cache如何区分吗 
+简单讲，buffer里的数据是将要写入到磁盘里的，而cache里的数据时从磁盘里读出来的。 
+cache用来缓存从磁盘中读取出来的数据，以方便数据下次被访问，提高数据的访问效率，避免频繁读取磁盘操作。linux自动地使用所有空闲的内存作为高速缓冲，当程序需要更多的内存时，它也会自动地减小缓冲的大小。 
+buffer用来缓冲数据的磁盘写入操作，通过将分散的写操作集中进行，减少磁盘碎片和硬盘的反复寻道，从而提高系统性能。linux有一个守护进程定期清空缓冲内容（即写磁盘），也可以通过sync命令手动清空缓冲。 
+
+5. 使用top查看系统资源占用情况时，哪一列表示内存占用呢 
+res这一列表示物理内存占用数量 
+
+6. 如何实时查看网卡流量为多少如何查看历史网卡流量 
+sar -n dev 1 100 
+sar -n dev 可以查看当天的历史网卡流量 
+sar -n dev -f /var/log/sa/saxx 其中xx是日期 
+
+7. 如何查看当前系统都有哪些进程 
+ps aux 
+
+8. ps 查看系统进程时，有一列为stat， 如果当前进程的stat为ss 表示什么含义如果为z表示什么含义 
+ss表示当前的进程是主进程，且处于休眠状态; z表示僵尸进程 
+
+9. 如何查看系统都开启了哪些端口 
+netstat -lnp 
+
+10. 如何查看网络连接状况 
+netstat -an 
+
+11. 想修改ip，需要编辑哪个配置文件，修改完配置文件后，如何重启网卡，使配置生效 
+vim /etc/sysconfig/network-scripts/ifcft-eth0 如果是eth1则文件名为ifcft-eth1 
+修改网卡后，可以使用命令： ifdown eth0; ifup eth0 重启网卡，也可以重启网络服务：service network restart 
+
+12. 能否给一个网卡配置多个ip 如果能，怎么配置 
+可以给一个网卡配置多个ip，配置步骤如下： 
+1) cd /etc/sysconfig/network-scripts/ cp ifcfg-eth0 ifcfg-eth0:1 
+2) vim ifcfg-eth0:1 #修改device和ipaddr、netmask以及gateway的值（如果有必要） 
+3) 重启网络服务 
+
+13. 如何查看某个网卡是否连接着交换机 
+mii-tool eth0 或者 mii-tool eth1 
+
+14. 如何查看当前主机的主机名，如何修改主机名要想重启后依旧生效，需要修改哪个配 置文件呢 
+输入命令 hostname 可以查看当前主机名，修改主机名可以通过命令: hostname newhostname 
+要想重启后依旧生效，需要修改配置文件 /etc/sysconfig/network 
+
+15. 设置dns需要修改哪个配置文件 
+需要修改 /etc/resolv.conf， 
+有时修改该文件后再重启网络服务dns相关设置丢失的话，需要在/etc/sysconfig/network-scripts/ifcfg-eth0中增加dns1=xxxxx这样的设置 
+
+16. 使用iptables 写一条规则：把来源ip为192.168.1.101访问本机80端口的包直接拒绝 
+iptables -i input -s 192.168.1.101 -p tcp --dport 80 -j reject 
+
+17. 要想把iptable的规则保存到一个文件中如何做如何恢复 
+保存：iptables-save > 1.ipt 
+恢复：iptables-restore < 1.ipt 
+
+18. 如何备份某个用户的任务计划 
+直接拷贝用户的cron文件 cp /var/spool/cron/username /bak/ 
+
+19. 任务计划格式中，前面5个数字分表表示什么含义 
+分时日月周 
+
+20. 如何可以把系统中不用的服务关掉 
+ntsysv 工具 
+或者使用chkconfig servicename off 
+
+21. 如何让某个服务（假如服务名为 nginx）只在3,5两个运行级别开启，其他级别关闭 
+chkconfig nginx off 
+chkconfig --level 35 nginx on 
+
+22. rsync 同步命令中，下面两种方式有什么不同呢 
+(1) rsync -av /dira/ ip:/dirb/ 是通过ssh方式同步的 
+(2) rsync -av /dira/ ip::dirb 是通过rsync服务的方式同步的 
+
+23. rsync 同步时，如果要同步的源中有软连接，如何把软连接的目标文件或者目录同步 
+如果源中有软连接，那么需要加一个-l选项 
+
+24. 某个账号登陆linux后，系统会在哪些日志文件中记录相关信息 
+有两个日志文件：1）/var/log/secure 这个记录验证用户信息的过程 2）/var/log/wtmp 这个日志记录成功登陆的用户信息 
+
+25. 网卡或者硬盘有问题时，我们可以通过使用哪个命令查看相关信息 
+dmesg 
+
+26. 分别使用xargs和exec实现这样的需求，把当前目录下所有后缀名为.txt的文件的权限修改为777. 
+xargs: find ./ -type f -name "*.txt" |xargs chmod 777 
+exec: find ./ -type f -name "*.txt" -exec chmod 777 {} ; 
+
+27. 有一个脚本运行时间可能超过2天，如何做才能使其不间断的运行，而且还可以随时观察脚本运行时的输出信息 
+使用screen工具 
+
+28. 在linux系统下如何按照下面要求抓包：只过滤出访问http服务的，目标ip为192.168.0.111，一共抓1000个包，并且保存到1.cap文件中 
+tcpdump -nn -s0 host 192.168.0.111 and port 80 -c 1000 -w 1.cap 
+
+29. rsync 同步数据时，如何过滤出所有.txt的文件不同步 
+--exclude="*.txt" 
+
+30. rsync同步数据时，如果目标文件比源文件还新，则忽略该文件，如何做 
+加 -u 选项 
+
+31. 想在linux命令行下访问某个网站，并且该网站域名还没有解析，如何做 
+修改 /etc/hosts 增加解析记录，或者使用curl -x 
+
+32. 自定义解析域名的时候，我们可以编辑哪个文件是否可以一个ip对应多个域名是否一个域名对应多个ip 
+编辑 /etc/hosts ,可以一个ip对应多个域名，不可以一个域名对多个ip 
+
+33. 我们可以使用哪个命令查看系统的历史负载（比如说两天前的） 
+sar -q -f /var/log/sa/saxx 其中xx为两天前的日期 
+
+34. 在linux下如何指定dns服务器，来解析某个域名 
+dig @dnsip domain.com 
+
+35. 使用rsync同步数据时，假如我们采用的是ssh方式，并且目标机器的sshd端口并不是默认的22端口，那我们如何做 
+rsync "--rsh=ssh -p port" 
+
+36. rsync同步时，如何删除目标数据多出来的数据，即源上不存在，但目标却存在的文件或者目录 
+--delete 
+
+37. 使用free查看内存使用情况时，哪个数值表示真正可用的内存量 
+第二行 -/+ buffers/cache 对应的free的那一个数 
+
+38. 有一天你突然发现公司网站访问速度变的很慢很慢，你该怎么办呢（服务器可以登陆，提示：你可以从系统负载和网卡流量入手） 
+首先登陆服务器，先看看负载情况，使用命令w， 如果第一个数值很大，再使用vmstat 1 查看是哪些资源缺乏造成的负载高，可以通过r,b,si,so 几列的数值推算是因为哪些资源缺乏。比如r列数值很大，需要使用top命令查看是哪个进程占用cpu比较多，如果si，so两列的数值变化频繁，则说明内存不足，也可以使用top命令查看哪些进程占用较多内存。 
+如果系统的负载不高，则需要查看一下网卡流量是否正常: sar -n dev 1 10 对比平时的网络流量看是否正常。 
+
+39. rsync使用服务模式时，如果我们指定了一个密码文件，那么这个密码文件的权限应该设置成多少才可以 
+600 或者 400 总之组和其他用户都不能读不能写也不能执行 
+
+ 
+练习16、
+1. 为什么下载源码包需要到官网上去下载 
+简单说就是为了安全，如果是非官方下载的源码包，有可能被别有用心的人动过手脚，毕竟是源码的，任何人都可以修改代码。 
+
+2. 64位机器是否可以安装32位rpm包64位机器是否可以安装32位的mysql二进制免编译包 
+64位机器是可以安装32位rpm包的，同样的64位机器也能安装32位的mysql二进制免编译包（centos5.x的确是支持，但是centos6.x不支持）。 
+
+3. 编译安装apache时， 如果不加--with-included-apr 会有什么问题 
+会报错，cannot use an external apr with the bundled apr-util，因为apr是一个底层的接口库，编译apache必须要有这个支持。 
+
+4. 编译php时，必须加上 --with-apxs2=/usr/local/apache2/bin/apxs 这是什么意思呢 
+apxs是apache编译动态模块并自动配置加载到httpd.conf文件的一个工具，由于php也是作为apache的一个动态加载模块，我们编译php的目的就是为了生成这个模块，所以必须要指定apxs的地址。 
+
+5. 当配置好apache的配置文件后，如何检验配置文件是否正确 
+/usr/local/apache2/bin/apachectl -t 
+
+6. 如何查看80端口是否启动 
+netstat -lnp |grep ':80' 
+
+7. 更改apache配置文件httpd.conf后，如何重新加载配置文件 
+/usr/local/apache2/bin/apachectl graceful 
+
+8. 如何查看apache加载了哪些模块 
+/usr/local/apache2/bin/apachectl -m 
+
+9. 怎么查看php加载了哪些模块 
+/usr/local/php/bin/php -m 
+
+10. 简单描述静态加载和动态共享模块的区别。 
+不管编译httpd还是php，都会有一个静态模块和动态模块的概念。首先，动态和静态模块宏观上分析，静态会直接编译进httpd这个可执行文件内，而动态的模块是单独的一个文件；其次，静态模块是和httpd这个文件一同加载的，只要服务一开启就会加载所有的静态模块，而动态模块是根据需求什么时候用什么时候加载。 
+
+11. 当我们配置好lamp环境后，访问php程序无法解析，你如何去排查这个问题呢 
+(1) apachectl -m 看是否加载了libphp5.so 
+(2) 如果没有加载，那查看/usr/local/apache2/modules/是否有libphp5.so,然后查看httpd.conf 中是否有loadmodule libphp5.so 
+(3) 再看httpd.conf中是否有 addtype application/x-httpd-php .php 
+(4) apache一定要重启服务 
+
+12. 如何配置apache的虚拟主机 
+vim httpd.conf 
+#include conf/extra/httpd-vhosts.conf 
+把该行最前面的#去掉，然后修改： 
+<directory /> 
+options followsymlinks 
+allowoverride none 
+order deny,allow 
+deny from all 
+</directory> 
+改为 
+<directory /> 
+options followsymlinks 
+allowoverride none 
+order deny,allow 
+allow from all 
+</directory> 
+
+再 vim conf/extra/httpd-vhosts.conf 根据实际需求修改 
+
+13. 如何配置apache的用户验证 
+vi httpd.conf 
+在相应的虚拟主机配置文件段，加入 
+<directory *> 
+allowoverride authconfig 
+authname "自定义的" 
+authtype basic 
+authuserfile /data/.htpasswd // 这个目录你可以随便写一个，没有限制 
+require valid-user 
+</directory> 
+
+保存后，然后创建apache的验证用户 htpasswd -c /data/.htpasswd test 
+
+14. 如何配置apache的日志以及日志按天切割 
+在httpd.conf 在相应的虚拟主机配置段，加入 
+customlog "|/usr/local/apache2/bin/rotatelogs -l /usr/local/apache2/logs/www.yourdomain.com-access_%y%m%d.log 86400" combined 
+注意，需要写成绝对路径，写成相对的路径可能不生效 
+
+15. 如何配置apache的图片等静态文件的过期时间 
+
+httpd.conf 中加入 
+
+<ifmodule mod_expires.c> 
+expiresactive on 
+expiresbytype image/gif "access plus 1 days" 
+expiresbytype image/jpeg "access plus 24 hours" 
+expiresbytype image/png "access plus 24 hours" 
+expiresbytype text/css "now plus 2 hour" 
+expiresbytype application/x-javascript "now plus 2 hours" 
+expiresbytype application/x-shockwave-flash "now plus 2 hours" 
+expiresdefault "now plus 0 min" 
+</ifmodule> 
+
+16. 如何限定某个目录下的php文件没有执行权限 
+vim httpd.conf 
+在相关的虚拟主机段，加入 
+<directory /www/htdocs/path> 
+php_admin_flag engine off 
+</directory> 
+其中 /www/htdocs/path 为要限制的目录 
+
+17. 如何配置apache的域名重定向 
+要把访问域名 www.domain1.com 的域名转发到 www.domain2.com 上 
+实现： 
+在相关的虚拟主机中增加 
+<ifmodule mod_rewrite.c> 
+rewriteengine on 
+rewritecond %{http_host} ^www.domain1.com$ 
+rewriterule ^(.*)$ http://www.domain2.com/$1 [r=301,l] 
+</ifmodule> 
+
+如果是多个域名重定向到一个域名 
+<ifmodule mod_rewrite.c> 
+rewriteengine on 
+rewritecond %{http_host} ^www.domain.com[or] 
+rewritecond %{http_host} ^www.domain1.com$ 
+rewriterule ^(.*)$ http://www.domain2.com/$1 [r=301,l] 
+</ifmodule> 
+
+18. 如何配置php的错误日志 
+vim php.ini 检查并配置如下两项 
+log_errors = on 
+error_log = logs/error.log 
+
+19. 如何在php中配置open_basedir, 是否可以在httpd.conf 中针对虚拟主机配置open_basedir 
+vim php.ini 
+加入 open_basedir=/var/www/ 
+httpd.conf中也可以针对虚拟主机限制openbasedir: 
+在相对应的虚拟主机配置文件中加入： 
+php_admin_value open_basedir "/var/www/htdocs" 
+
+20. 如何禁止php的函数exec 
+vim php.ini 找到 
+disable_functions = 
+改为 
+disable_functions = exec 如果是多个函数，可以在exec后面继续增加函数名用逗号分开即可 
+
+21. 我们以源码安装lamp环境时，先安装哪个，后安装哪个为什么呢 
+安装顺序可以是 mysql apache php 也可以是 apache mysql php 
+把php放到最后，这是因为安装php时，需要指定mysql安装目录，也需要指定apache的apxs工具 
+
+22. 怎么确定你的php.ini 在哪个目录下 
+php -i |grep 'configuration file' 
+
+23. 怎么确定你的php的extension_dir 在哪里 
+php -i |grep 'extension_dir' 
+
+ 
+练习17、
+1. 到mysql官方下载一个源码包，尝试编译安装，编译参数可以参考我们已经安装过的mysql的编译参数。 
+操作略，有问题的话把问题发出来。mysql官网 http://dev.mysql.com/downloads/mysql/5.1.html#downloads 选择source code 
+查看mysql编译参数的方法是 cat /usr/local/mysql/bin/mysqlbug|grep configure 
+
+2. mysql的配置文件my.cnf，是否可以放到除了/etc/目录下的其他目录下 
+可以放到其他目录下，不过启动的时候需要指定配置文件，或者在启动脚本中定义一下配置文件的路径 
+手动启动mysql的命令： /usr/local/mysql/bin/mysqld_safe --defaults-file=/data/my.cnf --user=mysql --datadir=/data/mysql 
+或者在启动脚本中/etc/init.d/mysqld 中，搜索conf=/etc/my.cnf，并修改 
+
+3. 比较一下，lamp环境和lnmp环境编译php时，编译参数有哪些区别 
+lamp的php有指定 apxs，lnmp中没有指定；lnmp中有一项叫做 --enable-fpm,lamp没有 
+
+4. 安装好php后，比较一下lamp的php和lnmp的php的目录结构有什么不同 
+lnmp的php比lamp的php多出来几个目录：sbin, share, var 
+
+5. 想一想，lamp环境下的php安装目录 /usr/local/php 是否可以删除 
+可以删除掉，因为lamp中的php是作为apache的一个动态模块libphp5.so来调用的,唯一有影响的是如果指定了php的配置文件php.ini在php的目录下，如果删除后则配置文件失效。 
+
+6. php的配置文件是什么 php-fpm 的配置文件是什么 
+php的配置文件时php.ini， php-fpm的配置文件时 php-fpm.conf 
+
+7. 如何检测nginx配置文件是否有错如何检测php-fpm的配置文件是否有错 
+/usr/local/nginx/sbin/nginx -t 
+/usr/local/php/sbin/php-fpm -t 
+
+8. 在本章中，出现了两次 "chmod 755 /etc/init.d/xxx" 其中xxx 为php-fpm 和 nginx, 想一想为什么要更改他们的权限，如果不改，会有什么问题 
+因为php-fpm和nginx是启动脚本，脚本执行必须要有执行权限，如果不给执行权限，不能正确把它们加入到系统服务中。 
+
+9. nginx是如何做到解析php文件的它是如何和php联系在一起的 
+nginx解析php，是以代理的方式代理的php-fpm，在nginx的配置文件中有这样一段： 
+location ~ .php$ { 
+include fastcgi_params; 
+fastcgi_pass unix:/tmp/php-fcgi.sock; 
+fastcgi_index index.php; 
+fastcgi_param script_filename /backup/sphinx/build/html$fastcgi_script_name; 
+} 
+这就是用来指定php-fpm的，nginx本身不能解析php，它只是一个简单的web服务软件，但nginx有一个很好的功能就是可以作为代理服务器，而php-fpm是可以解析php的，所以只要nginx代理一下php-fpm就可以解析php啦。 
+
+10. 配置nginx的访问日志，并编写日志切割脚本按天切割。 
+配置nginx的日志，首先需要定义一下日志格式，这个格式在 nginx.conf的 httpd模块下配置，参考格式： 
+log_format main1 '$proxy_add_x_forwarded_for - $remote_user [$time_local] ' 
+'"$request" $status $body_bytes_sent ' 
+'"$http_referer" "$http_user_agent"'; 
+其中 main1为日志格式的名字，这个会用到。然后在虚拟主机配置段中，也就是server部分中配置加上 
+access_log /var/log/xxx/access.log main1; 
+日志切割脚本（已知访问日志为/var/log/xxx/access.log）： 
+
+#! /bin/bash 
+d=`date -d "-1 day" +%y%m%d` 
+/bin/mv /var/log/xxx/access.log /var/log/xxx/$d-access.log 
+/bin/kill -hup `cat /usr/local/nginx/logs/nginx.pid` //其中nginx的pid文件为/usr/local/nginx/logs/nginx.pid 
+
+假如脚本的名字为 /usr/local/sbin/nginx_logrotate.sh,加入计划任务 
+0 0 * * * /bin/bash /usr/local/sbin/nginx_logrotate.sh 
+
+11. 配置nginx域名重定向，比如一个虚拟主机支持多个域名访问，abc.com 和 123.com 那么让123.com的访问跳转到 abc.com 
+在相应的虚拟配置文件中加入： 
+if ($host != 'abc.com' ) { 
+rewrite ^/(.*)$ http://abc.com/$1 permanent; 
+} 
+
+12. 配置nginx的用户验证 
+需要先安装 htpasswd命令： yum install -y httpd 
+htpasswd -c /usr/local/nginx/conf/htpasswd test // 添加test用户，第一次添加时需要加-c参数，第二次添加时不需要-c参数 
+在nginx相应虚拟主机配置文件中添加 
+location / { 
+root /data/www/wwwroot/count; 
+auth_basic "auth"; 
+auth_basic_user_file /usr/local/nginx/conf/htpasswd; 
+} 
+
+13. 针对nginx站点，设置禁止某个目录下的php程序解析 
+比如说，禁止abc目录下的php解析： 
+
+location ~ .*abc/.*.php$ 
+{ 
+deny all; 
+} 
+
+14. 使用nginx代理一个站点 
+例如，想在我们的nginx服务器上代理www.baidu.com, 可以创建一个新的虚拟配置文件baidu.conf 
+server { 
+listen 80; 
+server_name www.baidu.com; 
+
+location / { 
+proxy_pass http://61.135.169.125/; 
+proxy_set_header host $host; 
+proxy_set_header x-real-ip $remote_addr; 
+proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for; 
+} 
+# access_log /tmp/1.log; 
+} 
+
+15. 配置nginx限制只让某个ip访问 
+在相应的虚拟主机配置文件中，加入 
+allow 1.1.1.1; 
+allow 2.2.2.2; 
+deny all; 
+
+16. 设置nginx 防盗链，比如只想让www.jzc.net 这个域名的referer访问，其他站点不能访问 
+首先一点需要明确，防盗链是针对图片或者其他静态文件来设置的，比如我不想让其他网站引用我网站的图片，就可以这样设置防盗链。 
+在相应虚拟配置文件中加入： 
+
+location ~* ^.+.(gif|jpg|png|swf|flv|rar|zip|doc|pdf|gz|bz2|jpeg|bmp|xls)$ { 
+valid_referers none blocked server_names www.jzc.net; // 对这些域名的网站不进行盗链。 
+if ($invalid_referer) { 
+return 403; 
+} 
+} 
+当还可以写多个白名单域名，或者使用通配符：valid_referers none blocked server_names *.jzc.net *.baidu.com; 
+有时，我们也有这样的需求，如果别的网站引用了我们的图片，可以让它显示成我们自己指定的一张图片： 
+if ($invalid_referer) { 
+rewrite ^/ http://www.example.com/nophoto.gif; 
+} 
+
+17. nginx设置根据user_agent来限制访问，比如禁止baidu的蜘蛛访问站点 
+baidu蜘蛛的user_agent 为 mozilla/5.0 (compatible; baiduspider/2.0; +http://www.baidu.com/search/spider.html) 
+所以，我们可以写成这样： 
+location / { 
+if ($http_user_agent ~ 'baiduspider'){ 
+return 403; 
+} 
+} 
+
+
+18. nginx配置虚拟目录 
+
+问题： 
+www.111.com 站点的root目录为 /data/web/ ，现在想在www.111.com 下放一个站点，www.111.com/abc/ 
+但不能直接在/data/web/下创建abc目录，要放在 /data1/abc/下。 
+
+解决办法： 
+使用nginx的alias功能实现虚拟目录 
+在配置文件中加入 
+location ~ /abc/(.*)$ { 
+alias /data1/abc/$1; 
+} 
+
+19. php-fpm.conf 中配置多个pool，如何针对每一个pool配置open_basedir 以及slow_log 
+php-fpm.conf中可以配置多个pool，并且可以针对每一个pool配置open_basedir和slow_log 
+首先，php-fpm.conf的配置文件格式为： 
+[global] 
+
+... 
+... 
+... 
+
+[www.domain1.com] 
+
+... 
+... 
+... 
+
+[www.domain2.com] 
+
+... 
+... 
+... 
+
+配置open_basedir和slow_log需要在相应的pool中加入： 
+slowlog = log/www.default.com.slow 
+request_slowlog_timeout = 1 
+php_admin_value[open_basedir]=/data/release/www.domain.com/:/tmp/ 
+其中，open_basedir可以写多个目录，多个目录间使用:分隔 
+
+ 
+练习18、
+1. 如何更改系统环境变量path 
+vim /etc/profile 加入 path=$path:/usr/local/mysql/bin 
+
+2. 默认mysql安装好后，并没有root密码，如何给root设置一个密码 
+mysqladmin -uroot password 'newpass' 
+
+3. 如何更改root密码 
+mysqladmin -uroot -poldpasswd password 'newpasswd' 
+
+4. 如何连接远程的mysql服务器 
+mysql -uusername -ppass -hhostip -pport 
+
+5. 如何查看当前登陆mysql的账户 
+select user(); 
+
+6. 在mysql命令行下，怎么切换某个库 
+use databasename; 
+
+7. 如何查看一个表都有哪些字段 
+desc tablename; 
+
+8. 如何查看某个表使用的是哪种数据库引擎 
+show create tableg; 
+
+9. 如何查看当前数据库有哪些队列 
+show processlist; 
+
+10. 当有很多队列时，如何查看有哪些慢查询 
+看慢查询日志，慢查询日志在/etc/my.cnf中设置方法是增加： 
+log_slow_queries = logname 
+long_query_time = 1 //查询时间超过1s会记录日志 
+
+11. 如何查看当前mysql的参数值 
+show variables; 
+
+12. 如何不重启mysql服务，更改某个参数 
+set global xxx = xxx; 比如 
+set global wait_timeout = 10; 
+
+13. 用什么工具备份数据库请区分myisam引擎和innodb引擎两种存储引擎的备份。 
+mysqldump 备份数据库，mysqldump可以备份两种引擎的数据。但是innodb引擎的数据使用xtrabackup工具更快 
+
+14. 简单描述myisam和innodb引擎的区别。 
+innodb不支持fulltext类型索引； 
+innodb不保存表的行数； 
+myisam的数据直接存在系统的文件中，而innodb的数据库会事先创建一个数据表空间文件，然后再从这个表空间文件中存数据； 
+myisam不提供事务支持，innodb提供事务支持事务，外部键等高级 数据库功能； 
+myisam的锁是对整个表锁定，innodb是行锁； 
+
+15. 如果你的mysql服务启动不了，而当前终端又没有报错，你如何做 
+查看mysql的日志，日志默认在datadir下，以hostname为名字的.err文件 
+
+16. 要备份的库字符集是gbk的字符集，为了避免出现乱码的情况，如何在备份和还原的时候指定字符集为gbk 
+备份指定 mysqldump --default-character-set=gbk 
+恢复指定 mysql --default-character-set=gbk 
+
+17. 错误日志中，如果出现提示说某个表损坏需要修复，你如何修复这个表呢 
+repair table tablename; 
+
+18. 备份myisam引擎的数据库时，我们除了使用mysqldump工具备份外，还可以直接拷贝数据库的源数据（.frm, .myd, .myi三种格式的数据），其中哪一个文件可以不拷贝若想恢复该文件，如何做 
+.myi的文件可以不拷贝，恢复的时候，需要修复表，但加上 use_frm, 如 
+repair table tb1 use_frm; 
+
+19. 如果mysql的root密码忘记了如何做 
+1) 编辑mysql主配置文件 my.cnf vim /etc/my.cnf 
+在[mysqld]字段下添加参数 skip-grant 
+2) 重启数据库服务 service mysqld restart 
+3) 这样就可以进入数据库不用授权了 mysql -uroot 
+4) 修改相应用户密码 use mysql; 
+update user set password=password('your password') where user='root'; 
+flush privileges; 
+5) 修改/etc/my.cnf 去掉 skip-grant , 重启mysql服务 
+
+20. 如何更改mysql的普通账户密码 
+update user set password=password('your password') where user='username'; 
+
+21. mysql的命令历史文件在哪里，为了安全我们其实是可以做一个小处理，不让mysql的命令历史记录在文档中，请想一想如何利用之前我们学过的知识做到 
+~/.mysql_history 
+我们可以这样不保存mysql命令历史： cd ~; rm -f .mysql_history; ln -s /dev/null .mysql_history 
+
+22. 如何让mysql的监听端口为3307，而不是默认的3306 
+vim /etc/my.cnf 
+把port = 3306 改为 port = 3307 
+
+ 
+练习19、
+1. nfs配置，需要安装哪些包 
+nfs-utils 和 rpcbind 
+
+2. 如果不开启rpcbind服务，就启动nfs，会怎么样 
+如果不开启rpcbind服务，会报错：rpc.nfsd: writing fd to kernel failed: error 111 (connection refused) 
+
+3. nfs配置文件中，no_root_squash, all_squash, root_squash 分表表示什么含义 
+no_root_squash: 在客户端不限制root账号，客户端上root账号对nfs共享目录拥有至高权限 
+all_squash: 在客户端上限制所有账户，如果不指定anonuid/anongid则默认会把所有账户限定为nfsnobody 
+root_squash: 在客户端上限制root账户而不限定其他普通用户，如果不指定anonuid/anongid则默认会把所有账户限定为nfsnobody 
+
+4. 用什么命令来查看某个服务器上的nfs共享信息 
+showmount -e nfsserverip 
+
+5. 如何把远程的共享nfs挂载到本地如何查看本机已经共享的nfs资源 
+mount -t nfs nfsserverip:/dir /mnt 
+df -h 查看 
+
+6. 在nfs服务器上，假如更改了配置文件，如何不重启nfs服务使配置生效 
+exportfs -arv 
+
+7. 挂载nfs时，经常加上一个选项 -o nolock， 它的作用是什么呢 
+-o nolock 是为了不加文件锁。 
+
+8. 请根据需求写成相应的配置：把/data/123/目录共享，针对192.168.10.0/24网段，限制客户端上所有用户，并限定为uid=800，gid=800 
+/data/123 192.168.10.0/24(rw,sync,all_squash,anonuid=800,anongid=800) 
+
+9. 有两种方法可以让客户端开机后自动挂载nfs，是哪两种方法 
+第一种方法：把挂载的命令加入到 /etc/rc.local中 
+第二种方法：在/etc/fstab中加入一行 
+
+ 
+练习20、
+1. ftp 服务默认监听哪个端口，我们是否可以更改它 
+ftp默认监听21端口，可以更改这个默认监听端口。pure-ftpd 可以修改配置文件，加上一行：bind 0.0.0.0,2100 其中2100是修改后的端口。而vsftpd服务需要在配置文件/etc/vsftpd/vsftpd.conf 加入一行： listen_port=2100 
+
+2. 常用搭建ftp服务的软件有哪些 系统自带的是哪一种 
+pure-ftpd vsftpd， 系统自带是后者 
+
+3. 使用pureftp 如何创建一个用户 如何删除一个用户 
+创建：pure-pw useradd test1 -uwww -d /data/ftp 
+删除：pure-pw userdel test1 
+
+4. 如何更改用户的密码(pureftp) 
+更改密码的办法是：先删除账号，再重新创建同名账号。 
+
+5. 如何查看当前有几个用户(pureftp) 
+pure-pw list 
+
+6. 使用vsftpd软件搭建一个ftp服务器，你需要满足这样的需求：创建3个账户，user1, user2, user3 ，其中这三个用户都可以访问同一个目录，但是user1可读写，但user2和user3只读. 
+思路：根据课上我提供给大家的文档来搭建vsftpd虚拟账号，然后创建user1,user2,user3三个账号，在创建他们的配置文件时，指定相同的家目录，但user1 write_enable=yes, user2 write_enable=no, user3 write_enable=no 
+
+7. 使用vsftpd软件搭建一个ftp服务器，你需要满足这样的需求：创建3个账户，user1, user2, user3 ，其中这三个用户都可以访问同一个目录，但是每个用户都可以读取其他用户的文件，但是只能更改自己的文件，不能更改其他用户的文件。 
+思路：vsftpd搭建ftp服务，使用系统账号作为ftp的账号，然后要访问的目录做一个t权限（类似于tmp目录） 
+参考配置文件： cat /etc/vsftpd/vsftpd.conf 
+anonymous_enable=no 
+local_enable=yes 
+write_enable=yes 
+local_umask=022 
+anon_upload_enable=no 
+anon_mkdir_write_enable=no 
+dirmessage_enable=yes 
+xferlog_enable=yes 
+connect_from_port_20=yes 
+xferlog_std_format=yes 
+chroot_local_user=yes 
+listen=yes 
+pam_service_name=vsftpd 
+userlist_enable=yes 
+tcp_wrappers=yes 
+local_root=/tmp/123 
+
+创建ftp目录： mkdir /tmp/123 
+修改权限：chmod 1777 /tmp/123 
+创建账号：useradd user1; useradd user2; useradd user3 
+创建密码：passwd user1; passwd user2; passwd user3 
+
+8. 使用vsftpd软件搭建一个ftp服务器，要求任何人都可以登录（匿名登录），并且匿名账户可以读、写。 
+参考配置： cat /etc/vsftpd/vsftpd.conf 
+anonymous_enable=yes 
+local_enable=yes 
+write_enable=yes 
+local_umask=022 
+anon_umask=022 
+anon_other_write_enable=yes 
+anon_world_readable_only=no 
+anon_upload_enable=yes 
+anon_mkdir_write_enable=yes 
+dirmessage_enable=yes 
+xferlog_enable=yes 
+connect_from_port_20=yes 
+xferlog_std_format=yes 
+chroot_local_user=yes 
+listen=yes 
+pam_service_name=vsftpd 
+userlist_enable=yes 
+tcp_wrappers=yes 
+还需配置： chmod 777 /var/ftp/pub 
+
+ 
+练习21、
+1. 简述一下squid的用途 
+squid可以做代理和缓存服务器，而做代理时，可以分为正向代理和反向代理。正向代理用在企业办公环境中，企业员工上网通过代理来上网，代理的缓存功能可以为企业节省宝贵的带宽，降低成本；反向代理使用在网站的架构中，可以加速网站的访问速度并且降低服务器的磁盘i/o. 
+
+2. squid正向代理、反向代理有什么本质区别呢 
+正向代理代理的是客户端，代理后端是用户的个人电脑，反向代理代理的是服务器，后端是web服务器。 
+
+3. squid配置文件中有一个参数用来指定磁盘目录以及大小的，是哪一个参数 目录后面的三个数值分表表示什么含义 
+cache_dir 用来指定磁盘目录以及大小的，目录后面的三个数值从左到右依次表示：磁盘目录最大容量单位是m，一级子目录个数，二级子目录个数。 
+
+4. 哪一个参数用来分配占用内存大小 
+cache_mem用来分配占用内存大小。 
+
+5. 配置文件配置好后，要初始化一下squid的缓存目录，用什么命令来初始化 
+squid -z 
+
+6. squid启动后，再一次更改配置文件，用什么命令检测配置是否正确 用什么命令重新加载squid的配置文件，而不用重启squid 
+squid -kcheck 检测配置是否正确 
+squid -krec 重新加载 
+
+7. 您知道哪些配置是用来配置把静态文件缓存的吗 
+refresh_pattern .(jpg|png|gif|mp3|xml|css|js)$ 1440 50% 28800 ignore-reload 
+
+8. 如何配置可以让squid代理后端web上的所有域名 
+加一行：cache_peer 192.168.10.111 80 0 originserver 这样可以代理10.111上80端口下的所有网站 
+
+9. 请查一查squid的指南，看看 http_port 3128 后面可以跟什么(如，transprant, accel vhost vport ) 
+transprant 用来做透明代理 accel 表示代理为加速模式，如果不加accel，那么squid就是单纯的代理，不缓存数据，而加上它后，客户端请求会直接由squid服务器回答而不再把请求转发至真正的web服务器上。 
+配置反向代理时，可以不加accel，但需要加上vhost，这是用来区分代理后端哪些域名的，如果不加则无法访问，vport如果代理的都是80端口可以不加，但是如果不是80端口就得加上。 
+
+ 
+练习22、
+1. samba服务用在什么地方 
+samba服务用于把linux服务器上的文件或者打印接共享给windows或者linux. 
+
+2. 在samba服务的配置文件中，[global]配置部分的security 有几个安全等级分别表示什么意义 
+有四个安全等级：share：用户不需要账户及密码即可登录samba服务器 
+user：由提供服务的samba服务器负责检查账户及密码（默认） 
+server：检查账户及密码的工作由另一台windows或samba服务器负责 
+domain：指定windows域控制服务器来验证用户的账户及密码。 
+
+3. passdb backend 三种类型 smbpasswd, tdbsam和ldapsam 有什么区别 
+smbpasswd：该方式是老版本samba使用的机制，它使用工具smbpasswd给系统用户置一个samba密码，客户端就用此密码访问samba资源。 
+tdbsam：新版本默认的账号存储机制，也是把smb账号存在一个文件中，使用pdbedit工具来创建和修改smb账号。账号必须是系统用户。 
+ldapsam：基于ldap账户管理方式验证用户。 
+
+4. 启动samba服务的命令是什么 
+service smb start 
+
+5. 使用tdbsam用户后台时，如何创建新用户，如何锁定、恢复用户，又如何删除一个用户 
+pdbedit -a username 创建 
+pdbedit -c "[d]" -u username 锁定 
+pdbedit -c "[]" -u username 恢复 
+pdbedit -x username 删除 
+
+6. 如何在ie浏览器里访问远程的samba服务器 
+file://ip/ 
+
+7. 在linux上，我们如何访问samba服务器(两种情况) 
+smbclient //ip/share -u username 
+mount -t cifs //ip/share /mnt -o username=user,password=pass 
+
+ 
+练习23、 
+1. mysql replication模式主要应用在什么场景呢 
+应用在mysql数据库的实时备份；读写分离；mysql的ha集群等 
+
+2. 在一台服务器上同时配置两个mysql服务的时候，如果已经配置完一个mysql服务，配置另一个的时候如何更改监听端口 
+vim /etc/my.cnf #更改[mysqld]下的 port = 3306 
+
+3. 想要让mysql开机启动，需要把启动命令放到哪个文件下 
+/etc/rc.local 
+
+4. 在master的配置文件中，都修改了哪几个配置选项 
+server-id=1 
+log-bin=mysql-bin 
+
+5. 如何给mysql设置root密码 
+mysqladmin -uroot password '123456' 
+
+6. 配置replication模式时，master上需要给slave授予什么样的权限 
+grant replication slave on *.* to 'repl'@'ip' identified by 'pass'; 
+
+7. mysql有一个选项，可以不进入mysql的命令控制台就可以使用sql语句操作，是哪一个选项 
+-e 
+
+8. 如何在slave上查看主从是否正常 
+show slave statusg; 
+
+9. replication模式下，如果想重启master, slave必须先操作什么 
+slave 上必须先slave stop;
